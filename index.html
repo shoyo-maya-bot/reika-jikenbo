@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="迷宮入りしかけた事件を、あなたの推理で解決する謎解きファイル集。毎日の小謎と、定期的に届く新しい事件ファイル。">
+<meta property="og:title" content="零課事件簿">
+<meta property="og:description" content="毎日の小謎と、本格的な事件ファイルが遊べる謎解きサイト">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>零課事件簿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 捜査課の事件簿。表紙＝本日の小謎・事件ファイル棚・次回予告・捜査官手帳。各ファイルは「資料→問い→回答→ヒント」の章が縦に並ぶ */
+:root{
+  --paper:#ECF0F2; --sheet:#F8FAFB; --ink:#15212C; --muted:#5B6B78; --line:#C9D3DA;
+  --accent:#2F44C8; --tag:#F0D44C; --tag-ink:#2A2306; --stamp:#B8332E; --ok:#1E7A52; --flame:#E08A1E;
+  --f-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0D1318; --sheet:#151D24; --ink:#DCE3E8; --muted:#8C9AA6; --line:#2A3641;
+  --accent:#93A1FF; --tag:#E2C640; --tag-ink:#231D04; --stamp:#F0726B; --ok:#5FD39C; --flame:#F2A341; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0D1318; --sheet:#151D24; --ink:#DCE3E8; --muted:#8C9AA6; --line:#2A3641;
+  --accent:#93A1FF; --tag:#E2C640; --tag-ink:#231D04; --stamp:#F0726B; --ok:#5FD39C; --flame:#F2A341; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.85;padding-inline:20px;padding-block:0 72px}
+.wrap{max-width:900px;margin:0 auto}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.mono{font-family:var(--f-mono);letter-spacing:.06em}
+.sr{position:absolute;left:-9999px}
+
+.case-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 24px;padding-block:16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.case-bar a{color:var(--ink);text-decoration:none;font-family:var(--f-display);font-size:17px;letter-spacing:.08em}
+.case-bar nav{display:flex;gap:16px}
+.case-bar nav a{font-family:var(--f-body);font-size:13px;letter-spacing:0;color:var(--muted)}
+.case-bar nav a:hover,.case-bar nav a[aria-current]{color:var(--ink)}
+
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--sheet);padding:9px 20px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.ghost{background:none;color:var(--ink)}
+.btn[disabled]{opacity:.4;cursor:default}
+
+/* ===== 表紙 ===== */
+.mast{padding-block:48px 8px}
+.mast .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.2em;color:var(--muted);margin:0 0 8px}
+.mast h1{font-family:var(--f-display);font-weight:800;font-size:clamp(48px,10vw,96px);line-height:1.05;margin:0;letter-spacing:.06em}
+.mast p.lede{margin:18px 0 0;max-width:34em;font-size:16px}
+
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px;border-top:2px solid var(--ink);padding-top:12px;margin-top:52px}
+.sec-head h2{font-family:var(--f-display);font-size:24px;margin:0}
+.sec-head p{margin:0;color:var(--muted);font-size:13px}
+
+.daily{margin-top:20px;background:var(--sheet);border:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) 200px}
+.daily .body{padding:24px;min-width:0}
+.daily .date{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.1em}
+.daily .dq{font-family:var(--f-display);font-size:21px;margin:6px 0 14px;line-height:1.6}
+.daily .streak{border-left:1px solid var(--line);padding:24px 20px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.daily .streak b{font-family:var(--f-display);font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.daily .streak span{font-size:12px;color:var(--muted)}
+.week{display:flex;gap:4px;margin-top:10px}
+.week i{width:18px;height:18px;border:1px solid var(--line);display:block}
+.week i.on{background:var(--ok);border-color:var(--ok)}
+
+.files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:20px}
+.fcard{position:relative;background:var(--sheet);border:1px solid var(--line);padding:0;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);min-width:0;transition:border-color .15s,transform .15s}
+a.fcard:hover{border-color:var(--ink);transform:translateY(-2px)}
+.fcard .emb{aspect-ratio:16/10;border-bottom:1px solid var(--line);display:block;width:100%;max-width:100%}
+.fcard .in{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px;flex:1}
+.fcard .no{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;color:var(--muted)}
+.fcard h3{font-family:var(--f-display);font-size:20px;margin:0;line-height:1.4;text-wrap:balance}
+.fcard .meta{font-size:12px;color:var(--muted)}
+.fcard .state{margin-top:auto;padding-top:10px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bar{flex:1;height:4px;background:var(--line);position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--ok)}
+.fcard .seal{position:absolute;top:10px;right:10px;border:2px solid var(--stamp);color:var(--stamp);font-family:var(--f-display);font-size:13px;padding:0 8px;transform:rotate(6deg);background:var(--sheet)}
+.fcard.soon{border-style:dashed;color:var(--muted)}
+.fcard.soon h3{color:var(--ink)}
+.count-down{font-family:var(--f-mono);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+.notebook{margin-top:20px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
+.badge{background:var(--sheet);border:2px solid var(--ink);padding:22px;display:grid;gap:4px}
+.badge .rk{font-family:var(--f-display);font-size:34px;line-height:1.2}
+.badge .next{font-size:13px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);background:var(--line);gap:1px}
+.stats div{background:var(--sheet);padding:14px 16px}
+.stats b{display:block;font-family:var(--f-display);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2}
+.stats span{font-size:12px;color:var(--muted)}
+
+/* ===== ファイル ===== */
+.cover{padding-block:44px 24px}
+.cover .file{font-family:var(--f-mono);font-size:12px;letter-spacing:.2em;color:var(--muted);margin:0 0 10px}
+.cover h1{font-family:var(--f-display);font-weight:800;font-size:clamp(38px,8vw,72px);line-height:1.15;margin:0;text-wrap:balance}
+.cover .lede{font-size:16px;margin:22px 0 0;max-width:36em}
+.cover .lede p{margin:0 0 8px}
+.cover .rules{margin:18px 0 0;padding:14px 18px;border-left:3px solid var(--ink);background:var(--sheet);font-size:13px;color:var(--muted);max-width:42em}
+.cast{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.cast div{background:var(--sheet);border:1px solid var(--line);padding:8px 12px;font-size:13px}
+.cast b{font-family:var(--f-display);font-size:15px;margin-right:6px}
+
+.board{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-block:1px solid var(--line);padding-block:10px;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
+.board a{flex:1 0 auto;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-size:13px;padding:4px 10px;border:1px solid transparent;white-space:nowrap}
+.board a:hover{color:var(--ink);border-color:var(--line)}
+.board a i{font-style:normal;width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--line);font-family:var(--f-mono);font-size:11px}
+.board a.done{color:var(--ink)}
+.board a.done i{background:var(--ok);border-color:var(--ok);color:var(--sheet)}
+.board a.locked i{border-style:dashed}
+.board .count{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-left:12px;white-space:nowrap}
+
+.ch{margin-top:56px;scroll-margin-top:64px}
+.ch-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 16px;border-top:2px solid var(--ink);padding-top:12px}
+.ch-head .no{font-family:var(--f-mono);font-size:12px;letter-spacing:.16em;color:var(--muted)}
+.ch-head h2{font-family:var(--f-display);font-size:28px;margin:0;line-height:1.3}
+.ch-head .lv{margin-left:auto;font-size:12px;color:var(--muted)}
+.story{margin:16px 0 0;max-width:40em}
+.story p{margin:0 0 10px}
+
+.doc{position:relative;margin-top:20px;background:var(--sheet);border:1px solid var(--line);padding:28px 24px 22px}
+.doc .tag{position:absolute;top:-1px;left:20px;background:var(--tag);color:var(--tag-ink);font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.14em;padding:5px 10px 9px;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
+.doc h3{font-family:var(--f-display);font-size:18px;margin:6px 0 12px}
+.doc .note{font-size:13px;color:var(--muted);margin:12px 0 0}
+.doc ol.clues{margin:0;padding-left:1.4em;display:grid;gap:4px}
+.pager{font-family:var(--f-mono);font-size:clamp(26px,6vw,40px);letter-spacing:.2em;text-align:center;padding:18px 8px;border:1px solid var(--line);background:var(--paper);font-variant-numeric:tabular-nums}
+.keypad{display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center;margin-top:16px}
+.keypad span{border:1px solid var(--line);background:var(--paper);text-align:center;padding:6px 0;line-height:1.2}
+.keypad b{display:block;font-family:var(--f-mono);font-size:18px;font-weight:500}
+.keypad small{font-size:12px;color:var(--muted)}
+.keypad .blank{visibility:hidden}
+.testimony{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.testimony li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:start;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.testimony li:last-child{border-bottom:0;padding-bottom:0}
+.testimony b{font-family:var(--f-display)}
+.testimony q{quotes:"「" "」"}
+.shelf{display:flex;gap:6px;align-items:flex-end;overflow-x:auto;padding:8px 4px 0;border-bottom:6px solid var(--muted)}
+.book{position:relative;writing-mode:vertical-rl;font-family:var(--f-display);font-size:15px;letter-spacing:.12em;padding:14px 8px;border:1px solid var(--line);background:var(--paper);min-height:170px;flex:0 0 auto}
+.book:nth-child(2n){min-height:150px}
+.book:nth-child(3n){min-height:185px}
+.book .sticker{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);writing-mode:horizontal-tb;font-family:var(--f-mono);font-size:11px;background:var(--tag);color:var(--tag-ink);width:20px;height:20px;border-radius:50%;display:grid;place-items:center;letter-spacing:0}
+.memo{margin-top:14px;font-family:var(--f-display);font-size:16px;padding:12px 16px;border:1px dashed var(--line);transform:rotate(-.6deg);background:var(--paper)}
+.figrow{display:flex;flex-wrap:wrap;gap:24px;align-items:center}
+.figrow svg{flex:0 0 auto;max-width:100%}
+.figrow p{margin:0;flex:1 1 220px;min-width:0}
+.plan{width:100%;max-width:520px;height:auto;display:block;margin:0 auto}
+
+/* ロジック表 */
+.grid-wrap{overflow-x:auto;margin-top:16px}
+table.logic{border-collapse:collapse;margin:0 auto;font-size:14px}
+.logic th{font-weight:500;padding:6px 10px;white-space:nowrap}
+.logic thead th{font-family:var(--f-display);font-size:14px}
+.logic tbody th{text-align:right;font-family:var(--f-display)}
+.logic td{border:1px solid var(--line);padding:0}
+.logic button{width:52px;height:44px;border:0;background:var(--paper);cursor:pointer;font-size:20px;font-family:var(--f-display)}
+.logic button:hover{background:var(--line)}
+.logic button.o{color:var(--ok)}
+.logic button.x{color:var(--stamp)}
+
+/* キーボード */
+.screen{font-family:var(--f-mono);font-size:clamp(26px,6vw,38px);letter-spacing:.3em;padding:18px;text-align:center;background:var(--ink);color:var(--paper);border-radius:4px 4px 0 0}
+.screen::after{content:"_";animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.kbd{display:grid;gap:5px;padding:14px;border:1px solid var(--line);border-top:0;background:var(--paper);overflow-x:auto}
+.kbd div{display:flex;gap:5px;justify-content:center}
+.kbd div:nth-child(2){padding-left:16px}
+.kbd div:nth-child(3){padding-left:40px}
+.kbd span{width:32px;height:34px;flex:0 0 auto;border:1px solid var(--line);background:var(--sheet);display:grid;place-items:center;font-family:var(--f-mono);font-size:13px;border-radius:3px}
+
+/* 金庫 */
+table.hb{border-collapse:collapse;width:100%;max-width:520px;font-variant-numeric:tabular-nums}
+.hb th,.hb td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:center}
+.hb th{font-size:12px;color:var(--muted);font-weight:500}
+.hb td:first-child{font-family:var(--f-mono);font-size:22px;letter-spacing:.3em}
+.hb td{font-family:var(--f-mono)}
+
+/* 問いと回答 */
+.ask{margin-top:20px;display:grid;gap:12px}
+.ask .q{font-family:var(--f-display);font-size:19px;margin:0}
+.ask form,.daily form{display:flex;flex-wrap:wrap;gap:8px}
+.ask input,.daily input{flex:1 1 200px;min-width:0;border:1px solid var(--ink);background:var(--paper);padding:9px 12px;border-radius:0}
+.ask input{background:var(--sheet)}
+.msg{min-height:1.6em;font-size:14px;margin:0}
+.msg.ng{color:var(--stamp)}
+.msg.okm{color:var(--ok)}
+.hints{display:flex;flex-wrap:wrap;gap:8px}
+.hintbox{font-size:14px;padding:10px 14px;background:var(--sheet);border-left:3px solid var(--tag);margin:0}
+.hintbox b{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--muted);margin-right:8px}
+.solved{margin-top:20px;border:2px solid var(--ok);padding:18px 20px;position:relative;background:var(--sheet)}
+.solved .seal{position:absolute;top:-16px;right:16px;background:var(--paper);color:var(--ok);border:2px solid var(--ok);font-family:var(--f-display);font-size:14px;padding:2px 10px;transform:rotate(4deg)}
+.solved h4{font-family:var(--f-display);font-size:20px;margin:0 0 6px}
+.solved p{margin:0}
+.lockcard{margin-top:20px;border:1px dashed var(--line);padding:28px 24px;text-align:center;color:var(--muted)}
+.lockcard b{display:block;font-family:var(--f-display);font-size:20px;color:var(--ink);margin-bottom:4px}
+.ending{margin-top:28px;border:2px solid var(--ink);padding:32px 24px;background:var(--sheet)}
+.ending h3{font-family:var(--f-display);font-size:clamp(24px,4vw,32px);margin:0 0 12px}
+.ending p{margin:0 0 10px;max-width:40em}
+.share{margin-top:18px;display:grid;gap:8px;max-width:520px}
+.share textarea{width:100%;min-height:80px;resize:none;font:inherit;font-size:13px;background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:10px}
+.nextfile{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+
+footer{margin-top:64px;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:16px}
+.reset{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0;font-size:12px}
+
+@media (max-width:760px){
+  .files{grid-template-columns:1fr 1fr}
+  .notebook{grid-template-columns:1fr}
+  .daily{grid-template-columns:1fr}
+  .daily .streak{border-left:0;border-top:1px solid var(--line);flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 14px}
+  .daily .streak b{font-size:32px}
+}
+@media (max-width:520px){
+  .files{grid-template-columns:1fr}
+  .testimony li{grid-template-columns:1fr;gap:0}
+  .keypad{grid-template-columns:repeat(3,56px)}
+  .kbd span{width:26px;height:30px;font-size:11px}
+  .kbd div:nth-child(2){padding-left:12px}.kbd div:nth-child(3){padding-left:28px}
+  .logic button{width:44px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="case-bar">
+    <a href="#">零課事件簿</a>
+    <nav aria-label="メニュー">
+      <a href="#" data-nav="home">表紙</a>
+      <a href="#file01" data-nav="file01">FILE 01</a>
+      <a href="#file02" data-nav="file02">FILE 02</a>
+    </nav>
+  </div>
+  <main id="view"></main>
+  <footer>
+    <span class="mono">警視庁 捜査零課 事件簿</span>
+    <button class="reset" id="reset" type="button">すべての記録を消す</button>
+  </footer>
+</div>
+
+<script>
+/* ============ 共通 ============ */
+function norm(s){
+  return String(s).normalize("NFKC").toLowerCase()
+    .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s　、。・,.!！?？「」『』"'（）()]/g, "")
+    .replace(/さん$/, "");
+}
+const $ = id => document.getElementById(id);
+const KEY = "reika-v2";
+let st = { files:{}, daily:{} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) st = Object.assign(st, s); } catch(e){}
+try { const old = JSON.parse(localStorage.getItem("reika-file01")); if (old && !st.files.file01) st.files.file01 = old; } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} };
+const fs = id => (st.files[id] ||= { solved:{}, hints:{}, start:null, end:null });
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const keypad = [["1","あ"],["2","か"],["3","さ"],["4","た"],["5","な"],["6","は"],["7","ま"],["8","や"],["9","ら"],["",""],["0","わ"],["",""]]
+  .map(([n,k]) => n ? `<span><b>${n}</b><small>${k}行</small></span>` : `<span class="blank"></span>`).join("");
+
+function clockSVG(h, m){
+  const ma = m * 6, ha = (h % 12) * 30 + m * 0.5, rad = d => d*Math.PI/180;
+  const ticks = Array.from({length:12},(_,i)=>{const a=rad(i*30);const r1=i%3?78:72;return `<line x1="${90+Math.sin(a)*r1}" y1="${90-Math.cos(a)*r1}" x2="${90+Math.sin(a)*84}" y2="${90-Math.cos(a)*84}" stroke="var(--ink)" stroke-width="${i%3?1.5:3}"/>`}).join("");
+  return `<svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="鏡に映った、数字のない時計。短針は2と3の間、長針は5を指している">
+    <circle cx="90" cy="90" r="86" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>${ticks}
+    <line x1="90" y1="90" x2="${90+Math.sin(rad(ha))*44}" y2="${90-Math.cos(rad(ha))*44}" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>
+    <line x1="90" y1="90" x2="${90+Math.sin(rad(ma))*68}" y2="${90-Math.cos(rad(ma))*68}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="90" cy="90" r="5" fill="var(--stamp)"/></svg>`;
+}
+
+/* 表紙カードの紋章（ファイルごとの小さな挿絵） */
+const EMBLEM = {
+  file01:`<svg class="emb" viewBox="0 0 320 200" aria-hidden="true"><rect width="320" height="200" fill="var(--paper)"/>
+    <path d="M0 150 Q40 140 80 150 T160 150 T240 150 T320 150 V200 H0Z" fill="var(--line)"/>
+    <rect x="200" y="60" width="22" height="90" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+    <rect x="196" y="48" width="30" height="14" fill="var(--ink)"/><path d="M211 40 L196 48 H226Z" fill="var(--ink)"/>
+    <path d="M211 55 L60 20 L60 90Z" fill="var(--tag)" opacity=".55"/>
+    <rect x="40" y="96" width="80" height="54" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="80" y="128" text-anchor="middle" font-family="var(--f-display)" font-size="14" fill="var(--muted)">？</text></svg>`,
+  file02:`<svg class="emb" viewBox="0 0 320 200" aria-hidden="true"><rect width="320" height="200" fill="var(--paper)"/>
+    <path d="M0 160 L70 70 L120 120 L170 50 L250 140 L320 90 V200 H0Z" fill="var(--line)"/>
+    <path d="M150 74 L170 50 L190 72 L178 70 L170 78 L160 70Z" fill="var(--sheet)"/>
+    <rect x="110" y="128" width="100" height="52" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+    <path d="M100 130 L160 96 L220 130Z" fill="var(--ink)"/>
+    <rect x="128" y="144" width="16" height="16" fill="var(--tag)"/><rect x="176" y="144" width="16" height="16" fill="var(--paper)" stroke="var(--ink)"/>
+    ${[[30,30],[80,20],[240,30],[290,50],[60,110],[270,120],[130,40],[210,90]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.5" fill="var(--muted)"/>`).join("")}</svg>`,
+  file03:`<svg class="emb" viewBox="0 0 320 200" aria-hidden="true"><rect width="320" height="200" fill="var(--paper)"/>
+    <rect x="110" y="40" width="100" height="140" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/>
+    ${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${122+c*28}" y="${54+r*30}" width="18" height="18" fill="${(r+c)%3===0?"var(--tag)":"none"}" stroke="var(--muted)"/>`).join("")).join("")}
+    <text x="160" y="196" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--muted)">COMING SOON</text></svg>`
+};
+
+/* ============ FILE 01 ============ */
+const FILE01 = {
+  id:"file01", no:"FILE 01", title:"潮見館の消えた灯台", genre:"美術品盗難", lv:"★★☆☆☆", time:"20〜40分",
+  lede:["閉館後の美術館から、一枚の絵が消えた。油彩画『夜の灯台』。防犯カメラは止められ、残されたのはわずかな手がかりだけ。","あなたは零課の捜査官として、4つの資料を読み解き、事件の真相にたどり着いてください。"],
+  chapters:[
+  { id:"c1", no:"第一章", title:"警備員の最後の連絡", lv:"難易度 ★☆☆",
+    story:["事件の夜、館内を見回っていた警備員の吉岡は、何者かに襲われて気を失った。","倒れる直前、吉岡は古い携帯電話から、警備室へ短い数字だけのメッセージを送っていた。犯人に気づかれないよう、ポケットの中で打ったらしい。"],
+    doc:`<span class="tag">資料 1</span><h3>警備室に届いたメッセージ</h3><div class="pager">35　13　25</div><div class="keypad" aria-label="吉岡の携帯電話のボタン">${keypad}</div>`,
+    q:"吉岡は、どこを調べろと伝えたかったのか？", answers:["そうこ","倉庫"],
+    hints:["吉岡の携帯電話は、ボタンを何回か押して文字を打つタイプです。","数字は2桁で1文字。1桁目がボタン、2桁目がそのボタンを押す回数です。「35」なら、さ行のボタンを5回。"],
+    reveal:{head:"答え：倉庫（そうこ）", body:"3を5回で「そ」、1を3回で「う」、2を5回で「こ」。館の地下倉庫を調べると、空になった額縁が見つかった。倉庫の鍵を持っているのは、職員の3人だけだ。"} },
+  { id:"c2", no:"第二章", title:"鍵を持つ3人", lv:"難易度 ★★☆",
+    story:["地下倉庫の鍵を持っているのは、学芸員の一ノ瀬、修復師の二宮、副館長の三浦の3人。","取り調べの結果、零課はひとつの事実をつかんだ。<b>3人のうち犯人は1人だけで、犯人だけが嘘をつき、残りの2人は本当のことを話している。</b>"],
+    doc:`<span class="tag">資料 2</span><h3>取り調べの記録</h3><ul class="testimony">
+      <li><b>一ノ瀬</b><span><q>二宮さんは犯人じゃありません。あの夜はずっと私と一緒でした。</q></span></li>
+      <li><b>二宮</b><span><q>犯人は三浦さんです。</q></span></li>
+      <li><b>三浦</b><span><q>二宮くんは嘘をついていますよ。</q></span></li></ul>`,
+    q:"犯人は誰か？　名字で答えよ。", answers:["みうら","三浦"],
+    hints:["「この人が犯人だったら」と1人ずつ仮定して、3人の発言が条件どおりになるか確かめましょう。","一ノ瀬と二宮は、どちらも犯人だと仮定すると、一ノ瀬の発言の真偽がおかしくなります。"],
+    reveal:{head:"答え：三浦（みうら）", body:"一ノ瀬が犯人なら、嘘のはずの「二宮は犯人じゃない」が偽になり、二宮が犯人になってしまう。二宮が犯人なら、正直なはずの一ノ瀬の発言が偽になる。三浦が犯人のときだけ、一ノ瀬と二宮が本当で、三浦だけが嘘になる。"} },
+  { id:"c3", no:"第三章", title:"副館長の本棚", lv:"難易度 ★★☆",
+    story:["三浦は犯行を認めない。零課は三浦の部屋を調べ、本棚の前に落ちていたメモを見つけた。","棚の本のうち、いくつかの背表紙には番号のシールが貼られている。"],
+    doc:`<span class="tag">資料 3</span><h3>三浦の部屋の本棚</h3>
+      <div class="shelf" aria-label="本棚。左から順に5冊"><div class="book">よるのとしょかん</div><div class="book">さかなのくに<span class="sticker">2</span></div><div class="book">ねこのてがみ</div><div class="book">ひとりがすき<span class="sticker">4</span></div><div class="book">うみとみずうみ<span class="sticker">2</span></div></div>
+      <p class="memo">番号は文字の位置。左から読めば、隠し場所がわかる。</p>`,
+    q:"三浦は、何かをどこに隠したのか？", answers:["かがみ","鏡","かがみのうら","鏡の裏"],
+    hints:["シールのない本は関係ありません。","「さかなのくに」の2文字目は「か」です。同じように、シールのある本だけを左から読みます。"],
+    reveal:{head:"答え：鏡（かがみ）", body:"さかなのくにの2文字目「か」、ひとりがすきの4文字目「が」、うみとみずうみの2文字目「み」。部屋の姿見を外すと、裏に美術館の時計室の鍵が貼りつけてあった。"} },
+  { id:"c4", no:"第四章", title:"鏡の中の時計", lv:"難易度 ★★★",
+    story:["三浦は言う。「犯行は夜の10時過ぎでしょう。私はその時間、駅前のバーにいました」。","しかし、館の向かいのビルにいた清掃員が、窓越しに証言した。「犯人らしい人影を見たとき、ホールの大きな鏡に壁の時計が映っていたんです」。"],
+    doc:`<span class="tag">資料 4</span><h3>清掃員が見た、鏡の中の時計</h3><div class="figrow">${clockSVG(2,25)}<p>ホールの時計には数字が書かれていない。清掃員が見たのは、時計そのものではなく、向かいの鏡に映った姿だった。時計は正確に動いていたことが確認されている。</p></div>`,
+    q:"人影が目撃された、本当の時刻は？（夜の何時何分か）", check:s => /^(午後|pm)?(9|09|21)(:|時)?35(分)?$/.test(s),
+    hints:["鏡に映った時計は、左右が反転しています。12と6を結ぶ線で折り返すように考えましょう。","鏡の中の時刻と本当の時刻を足すと、ちょうど12時になります。"],
+    reveal:{head:"答え：午後9時35分", body:"鏡の中では2時25分に見えた針は、左右を戻すと9時35分を指している。三浦がバーに入ったのは10時過ぎ。犯行時刻のアリバイは崩れた。"} }
+  ],
+  final:{ id:"fin", no:"最終章", title:"三浦の手帳", lv:"難易度 ★★★",
+    story:["アリバイを崩された三浦は、黙ったまま一冊の手帳を差し出した。最後のページには、短い走り書きだけが残っている。","なぜ三浦は、自分が長年守ってきた館の絵を盗んだのか。"],
+    doc:`<span class="tag">資料 5</span><h3>手帳の最後のページ</h3><p class="memo" style="font-size:22px;text-align:center">一の二　　二の三　　三の三</p><p class="note">手帳の表紙の裏には、こう書かれている。「答えは、これまでの捜査の中にある」</p>`,
+    q:"三浦の動機を、ひらがな3文字で答えよ。", answers:["うらみ","恨み","怨み"],
+    hints:["「一の二」の「一」は、第一章の答えのことです。","第一章の答えの2文字目、第二章の答えの3文字目、第三章の答えの3文字目を並べます。"],
+    reveal:{head:"答え：恨み（うらみ）", body:"そうこの「う」、みうらの「ら」、かがみの「み」。"} },
+  ending:`<h3>真相</h3><p>『夜の灯台』を描いたのは、三浦の父だった。無名のまま亡くなった父の絵は、館の売却話とともに、海外の収集家へ安く手放されることが決まっていた。</p><p>「あの絵は、父が最後に見た海なんです」。三浦は、館の時計室の奥に絵を隠し、売却の期限が過ぎるのを待つつもりだった。絵は無傷のまま、時計の振り子の裏から見つかった。</p><p>FILE 01、解決。おつかれさまでした、捜査官。</p>`
+};
+
+/* ============ FILE 02 ============ */
+const planSVG = `<svg class="plan" viewBox="0 0 520 300" role="img" aria-label="白銀荘の1階見取り図。左上に書斎、右上に遊戯室、左下に食堂、右下に浴場、中央にホール">
+  <rect x="10" y="10" width="500" height="280" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>
+  <line x1="190" y1="10" x2="190" y2="290" stroke="var(--ink)" stroke-width="2"/><line x1="330" y1="10" x2="330" y2="290" stroke="var(--ink)" stroke-width="2"/>
+  <line x1="10" y1="150" x2="190" y2="150" stroke="var(--ink)" stroke-width="2"/><line x1="330" y1="150" x2="510" y2="150" stroke="var(--ink)" stroke-width="2"/>
+  <rect x="190" y="70" width="2" height="34" fill="var(--paper)"/><rect x="328" y="70" width="4" height="34" fill="var(--paper)"/>
+  <rect x="190" y="196" width="2" height="34" fill="var(--paper)"/><rect x="328" y="196" width="4" height="34" fill="var(--paper)"/>
+  <rect x="236" y="286" width="48" height="6" fill="var(--paper)"/>
+  <g font-family="var(--f-display)" font-size="20" fill="var(--ink)" text-anchor="middle">
+    <text x="100" y="86">書斎</text><text x="420" y="86">遊戯室</text><text x="100" y="226">食堂</text><text x="420" y="226">浴場</text><text x="260" y="156">ホール</text></g>
+  <g font-family="var(--f-mono)" font-size="11" fill="var(--muted)" text-anchor="middle"><text x="260" y="280">玄関</text><text x="100" y="108">金庫・パソコン</text><text x="420" y="108">ビリヤード台</text><text x="100" y="248">柱時計</text></g>
+  <rect x="40" y="30" width="40" height="22" fill="var(--tag)" opacity=".8"/><text x="60" y="46" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--tag-ink)">SAFE</text>
+</svg>`;
+const PEOPLE = ["天野","石川","上田","江口"], ROOMS = ["書斎","食堂","遊戯室","浴場"];
+const logicTable = `<div class="grid-wrap"><table class="logic" aria-label="推理用メモ表。タップで ○ と × を切り替え"><thead><tr><th></th>${ROOMS.map(r=>`<th scope="col">${r}</th>`).join("")}</tr></thead>
+  <tbody>${PEOPLE.map((p,i)=>`<tr><th scope="row">${p}</th>${ROOMS.map((r,j)=>`<td><button type="button" data-cell="${i}-${j}" aria-label="${p}と${r}"></button></td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  <p class="note">表はメモ用です。タップすると「×」「○」「空白」の順に切り替わります。</p>`;
+const kbdRows = ["qwertyuiop","asdfghjkl","zxcvbnm"];
+const kbdHTML = `<div class="screen" aria-label="画面の文字">lomlp</div><div class="kbd" aria-label="霧島のパソコンのキーボード">${kbdRows.map(r=>`<div>${[...r].map(k=>`<span>${k.toUpperCase()}</span>`).join("")}</div>`).join("")}</div>`;
+const candleSVG = (()=>{
+  const base=210, H=160;
+  const one = (x,w,rem,label,sub) => {
+    const h=H*rem, y=base-h;
+    return `<rect x="${x}" y="${base-H}" width="${w}" height="${H}" fill="none" stroke="var(--muted)" stroke-dasharray="4 4"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+    <line x1="${x+w/2}" y1="${y}" x2="${x+w/2}" y2="${y-8}" stroke="var(--ink)" stroke-width="2"/>
+    <path d="M${x+w/2} ${y-30} C ${x+w/2+9} ${y-16}, ${x+w/2+6} ${y-8}, ${x+w/2} ${y-8} C ${x+w/2-6} ${y-8}, ${x+w/2-9} ${y-16}, ${x+w/2} ${y-30}Z" fill="var(--flame)"/>
+    <text x="${x+w/2}" y="${base+22}" text-anchor="middle" font-family="var(--f-display)" font-size="14" fill="var(--ink)">${label}</text>
+    <text x="${x+w/2}" y="${base+40}" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--muted)">${sub}</text>`;
+  };
+  return `<svg width="300" height="260" viewBox="0 0 300 260" role="img" aria-label="同じ長さだった太いろうそくと細いろうそく。今は太いほうが細いほうのちょうど2倍の長さ">
+    <line x1="10" y1="210" x2="290" y2="210" stroke="var(--ink)" stroke-width="3"/>
+    ${one(50,48,0.4,"太いろうそく","4時間で燃え尽きる")}${one(200,22,0.2,"細いろうそく","3時間で燃え尽きる")}
+    <text x="150" y="44" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--muted)">点線＝火をつける前の長さ</text></svg>`;
+})();
+
+const FILE02 = {
+  id:"file02", no:"FILE 02", title:"白銀荘の書斎", genre:"雪の山荘", lv:"★★★★☆", time:"40〜90分",
+  lede:["大雪で道が閉ざされた山荘「白銀荘」。主人の推理作家・霧島冬彦のもとに、4人の客が泊まっていた。","深夜0時、書斎で眠り込んでいた霧島が見つかる。命に別状はない。だが、書き直したばかりの遺言書が消えていた。雪の上に足跡はない。犯人は、まだこの山荘の中にいる。"],
+  cast:[["霧島","山荘の主人。推理作家"],["天野","担当編集者"],["石川","霧島の顧問弁護士"],["上田","霧島の甥"],["江口","霧島の秘書"]],
+  chapters:[
+  { id:"c1", no:"第一章", title:"午後11時の白銀荘", lv:"難易度 ★★☆",
+    story:["零課はまず、4人の客がそれぞれ午後11時にどこにいたかを確かめることにした。4人は1階の4つの部屋に、1人ずつ別々にいたことが分かっている。","ところが、全員の話がどこか曖昧だ。聞き取りの結果をまとめると、次のようになった。"],
+    doc:`<span class="tag">資料 1</span><h3>白銀荘 1階見取り図と、聞き取りのまとめ</h3>${planSVG}
+      <ol class="clues" style="margin-top:18px">
+        <li>天野は、食堂にも書斎にもいなかった。</li>
+        <li>遊戯室にいたのは、上田か江口のどちらかだ。</li>
+        <li>石川は、浴場にも遊戯室にもいなかった。</li>
+        <li>江口は、食堂にはいなかった。</li>
+        <li>書斎にいた人の名字は、遊戯室にいた人の名字より、五十音順で後ろにくる。</li>
+      </ol>${logicTable}`,
+    q:"午後11時に書斎にいたのは誰か？", answers:["えぐち","江口"],
+    hints:["まず天野の居場所を決めましょう。条件1と条件2を合わせると、天野が入れる部屋は1つだけです。","石川は書斎か食堂のどちらか。石川が書斎だと仮定すると、条件4と条件5が両立しなくなります。"],
+    reveal:{head:"答え：江口", body:"天野は浴場、石川は食堂、上田は遊戯室、江口は書斎。問い詰められた江口は打ち明けた。「11時にお茶を運んだら、先生はもう机で眠っていました。パソコンの画面に、変な文字が打たれていて……」"} },
+  { id:"c2", no:"第二章", title:"打ち間違い", lv:"難易度 ★★★",
+    story:["霧島のパソコンには、5文字だけが打たれていた。霧島は目を覚ますと、こう話した。","「夜、停電があったんだ。真っ暗な中で、誰かが書斎に入ってくる気配がした。とっさに、何を盗られたのかメモしようとしたんだが……キーボードは手探りだったからな」。","調べると、キーボードの上で霧島の両手は、正しい位置から<b>ちょうど1つ右</b>にずれていた。"],
+    doc:`<span class="tag">資料 2</span><h3>霧島のパソコンの画面</h3>${kbdHTML}<p class="note">霧島はいつもローマ字入力を使っている。変換する前に、眠らされたらしい。</p>`,
+    q:"霧島は、何と打とうとしたのか？", answers:["きんこ","金庫","kinko"],
+    hints:["画面の文字1つ1つについて、キーボードでその1つ左のキーを探しましょう。","L の1つ左は K、O の1つ左は I。ローマ字で読むと日本語になります。"],
+    reveal:{head:"答え：金庫（きんこ）", body:"lomlp を1つずつ左にずらすと kinko。書斎の金庫だ。ところが金庫には鍵がかかったまま。暗証番号を知っているのは霧島だけだが、その霧島は「番号を覚えるのが苦手でね」と、自作の手がかりを書いた紙を差し出した。"} },
+  { id:"c3", no:"第三章", title:"推理作家の金庫", lv:"難易度 ★★★★",
+    story:["霧島は、暗証番号をそのまま書き残さない。代わりに、自分で解ける形の手がかりを残している。推理作家らしい癖だ。","金庫の番号は4桁。<b>4つの数字はすべて違う</b>。紙には、試しに入れた番号と、その結果が並んでいる。"],
+    doc:`<span class="tag">資料 3</span><h3>金庫の横に貼られた紙</h3>
+      <div class="grid-wrap"><table class="hb"><thead><tr><th>試した番号</th><th>数字も位置も合っている</th><th>数字は合っているが位置が違う</th></tr></thead>
+      <tbody><tr><td>1357</td><td>0</td><td>1</td></tr><tr><td>2468</td><td>0</td><td>2</td></tr><tr><td>9014</td><td>1</td><td>1</td></tr><tr><td>7280</td><td>2</td><td>0</td></tr><tr><td>5693</td><td>1</td><td>0</td></tr></tbody></table></div>
+      <p class="note">例：本当の番号が 1234 で 1243 と入れたら、「数字も位置も合っている」が2（1と2）、「数字は合っているが位置が違う」が2（3と4）になる。</p>`,
+    q:"金庫の暗証番号は？", check:s => s === "7294",
+    hints:["7280 は2つが位置まで合い、1357 と 2468 で使われる数字はかなり絞れます。まず、どの数字が番号に入っているかを決めましょう。","番号に入る数字は 7・2・9・4 の4つです。あとは各行の「位置」の条件で並び順を決めます。"],
+    reveal:{head:"答え：7294", body:"金庫が開いた。遺言書はやはり無い。代わりに、溶けたろうの跡が残る燭台が2つ。霧島が言う。「停電のとき、私はここで同時に2本のろうそくに火をつけた。誰かが入ってきたのは、そのすぐ後だ」。"} },
+  { id:"c4", no:"第四章", title:"二本のろうそく", lv:"難易度 ★★★★",
+    story:["停電が起きたのは何時だったのか。山荘の時計はすべて電気式で、停電のあいだは止まっていた。手がかりは、書斎のろうそくだけだ。","2本は同じ長さで、霧島が停電の直後に同時に火をつけた。どちらも同じ速さで燃え続け、<b>午前0時ちょうど</b>、霧島を見つけた江口が2本とも吹き消した。そのとき、<b>太いろうそくは、細いろうそくのちょうど2倍の長さ</b>が残っていた。"],
+    doc:`<span class="tag">資料 4</span><h3>書斎の燭台</h3><div class="figrow">${candleSVG}<p>太いほうは火をつけてから4時間で、細いほうは3時間で燃え尽きる。燃える速さはそれぞれ一定。</p></div>`,
+    q:"停電が起きたのは何時何分か？（夜の時刻で）", check:s => /^(午後|pm)?(9|09|21)(:|時)?36(分)?$/.test(s),
+    hints:["もとの長さを1、火をつけてからの時間を t 時間とすると、太いほうの残りは 1 − t/4、細いほうの残りは 1 − t/3 です。","1 − t/4 = 2 × (1 − t/3) を解くと t = 2.4 時間。2時間24分です。0時から引きましょう。"],
+    reveal:{head:"答え：午後9時36分", body:"t = 2.4時間、つまり2時間24分。0時から逆算すると、停電は午後9時36分。零課は、停電のとき各自がどこにいたかを改めて聞き取った。"} }
+  ],
+  final:{ id:"fin", no:"最終章", title:"停電の証言", lv:"難易度 ★★★★★",
+    story:["4人の客に、停電のときのことを話してもらった。零課の調べで、<b>犯人以外の3人は本当のことを話している</b>と分かっている。","犯人は、停電の時刻について、ある思い込みを利用しようとした。"],
+    doc:`<span class="tag">資料 5</span><h3>停電についての証言</h3><ul class="testimony">
+      <li><b>天野</b><span><q>停電のときは自分の部屋で原稿を読んでいました。9時半を少し過ぎたころだったと思います。</q></span></li>
+      <li><b>石川</b><span><q>停電した瞬間、食堂の柱時計がちょうど10時を打ったんです。だから私は、停電のとき食堂にいたことになります。</q></span></li>
+      <li><b>上田</b><span><q>停電のとき、僕はひとりで食堂にいました。石川さんが来たのは、柱時計が10時を打ったあとです。</q></span></li>
+      <li><b>江口</b><span><q>停電中は台所で懐中電灯を探していました。9時40分ごろに見つけて、ホールに戻りました。</q></span></li></ul>
+      <p class="note">食堂の柱時計は、ぜんまい仕掛けで動いている。</p>`,
+    q:"遺言書を盗んだ犯人は誰か？", answers:["いしかわ","石川"],
+    hints:["第四章で分かった停電の時刻と、4人の証言を照らし合わせましょう。","柱時計は停電でも止まりません。停電が9時36分なら、10時を打ったのは停電の24分後です。"],
+    reveal:{head:"答え：石川", body:"停電は午後9時36分。柱時計はぜんまい仕掛けなので停電中も動き続け、10時を打ったのは停電の24分後だ。「停電の瞬間に10時を打った」と言うのは石川だけ。上田の証言どおり、石川が食堂に来たのは10時を過ぎてから。停電の直後、書斎に忍び込めたのは石川だった。"} },
+  ending:`<h3>真相</h3><p>霧島が書き直した遺言書には、石川の事務所が管理していた財団への寄付を、すべて取りやめると書かれていた。財団の資金を使い込んでいた石川にとって、それは破滅を意味した。</p><p>電気の分電盤を落としたのも石川だった。停電中なら時計は止まり、誰も正確な時刻を知らない。ただひとつ、ぜんまいで動く柱時計を除いて。遺言書は、石川の鞄の底から見つかった。</p><p>FILE 02、解決。おつかれさまでした、捜査官。</p>`
+};
+
+const FILES = [FILE01, FILE02];
+const NEXT = { no:"FILE 03", title:"幽霊ホテルの時刻表", genre:"列車とアリバイ", date:"2026-10-18T19:00:00+09:00" };
+
+/* ============ 本日の小謎 ============ */
+const DAILY = [
+  { q:"次に入る数は？　2、3、5、7、11、□", a:["13"], ex:"素数の列です。" },
+  { q:"次に入る文字は？　い、ろ、は、に、ほ、□", a:["へ"], ex:"いろは歌の順です。" },
+  { q:"「たかたらたす」。たぬきが残した手紙が示す鳥は？", a:["からす","烏"], ex:"「た」を抜くと、からす。" },
+  { q:"午前0時から正午までの間に、時計の長針と短針が重なるのは何回？（0時ちょうどと正午ちょうどは数えない）", a:["10","10回"], ex:"重なるのは12/11時間ごと。1時5分台から10時54分台までの10回です。" },
+  { q:"1は1、2は3、3は5、4は7。では5は？", a:["9"], ex:"2倍して1を引いています。" },
+  { q:"AはBの兄、BはCの妹、CはDの父。AはDから見て何にあたる？", a:["おじ","叔父","伯父","おじさん"], ex:"AとCはきょうだい。Cの子のDから見て、Aはおじです。" },
+  { q:"1から100までの整数のうち、数字の7を含むものはいくつ？", a:["19","19個"], ex:"一の位が7のものが10個、十の位が7のものが10個。77を二重に数えているので19個。" },
+  { q:"ある月の13日は金曜日。その月の1日は何曜日？", a:["日曜日","日曜","日","にちようび","にちよう"], ex:"1日は13日の12日前。12日前は1週間と5日前なので、金曜の5日前で日曜日です。" },
+  { q:"次に入るアルファベットは？　O、T、T、F、F、S、S、E、□", a:["n"], ex:"One、Two、Three……の頭文字。9はNineです。" },
+  { q:"時計が3時30分を指しているとき、長針と短針がつくる小さいほうの角度は何度？", a:["75","75度"], ex:"短針は3と4の真ん中（105度）、長針は6（180度）。差は75度です。" },
+  { q:"「にわにはにわにわとりがいる」。庭には鶏が何羽いる？", a:["2","2羽","にわ"], ex:"「庭には二羽、鶏がいる」です。" },
+  { q:"次に入る漢字は？　一、十、百、千、□", a:["万","萬","まん"], ex:"位が10倍ずつ上がっていきます。" },
+  { q:"6人が全員と1回ずつ握手をすると、握手は全部で何回？", a:["15","15回"], ex:"6×5÷2で15回です。" }
+];
+function jstDay(t = Date.now()){ return Math.floor((t + 9*3600e3) / 86400e3); }
+function dayLabel(d){ const x = new Date(d*86400e3); return `${x.getUTCFullYear()}.${String(x.getUTCMonth()+1).padStart(2,"0")}.${String(x.getUTCDate()).padStart(2,"0")}`; }
+function streak(){
+  let d = jstDay(), n = 0;
+  if (!st.daily[d]) d--;
+  while (st.daily[d]) { n++; d--; }
+  return n;
+}
+
+/* ============ 階級 ============ */
+function points(){
+  let p = 0;
+  for (const f of FILES){ const s = st.files[f.id]; if (!s) continue;
+    p += Object.keys(s.solved).length * 3;
+    if (s.solved.fin) p += 10;
+    p -= Math.min(Object.values(s.hints).reduce((a,b)=>a+b,0), Object.keys(s.solved).length * 2);
+  }
+  return Math.max(0, p + Object.keys(st.daily).length * 2);
+}
+const RANKS = [[0,"巡査"],[10,"巡査部長"],[25,"警部補"],[45,"警部"],[70,"警視"],[100,"警視正"],[140,"零課 課長"]];
+function rankInfo(){
+  const p = points(); let i = 0; while (i+1 < RANKS.length && p >= RANKS[i+1][0]) i++;
+  return { p, name:RANKS[i][1], next:RANKS[i+1] };
+}
+
+/* ============ 表紙 ============ */
+function fileProgress(f){ const s = st.files[f.id]; const n = s ? Object.keys(s.solved).length : 0; return { n, total:f.chapters.length+1, done:!!(s && s.solved.fin) }; }
+function renderHome(){
+  const today = jstDay(), d = DAILY[today % DAILY.length], solvedToday = !!st.daily[today];
+  const week = Array.from({length:7},(_,i)=>today-6+i).map(x=>`<i class="${st.daily[x]?"on":""}" title="${dayLabel(x)}"></i>`).join("");
+  const r = rankInfo();
+  const filesSolved = FILES.filter(f=>fileProgress(f).done).length;
+  const hintsUsed = FILES.reduce((a,f)=>a+Object.values(st.files[f.id]?.hints||{}).reduce((x,y)=>x+y,0),0);
+  $("view").innerHTML = `
+  <header class="mast">
+    <p class="eyebrow">警視庁 捜査零課</p>
+    <h1>零課事件簿</h1>
+    <p class="lede">迷宮入りしかけた事件を、あなたの推理で解決する謎解きファイル集。毎日ひとつの小謎と、定期的に届く新しい事件ファイル。</p>
+  </header>
+
+  <div class="sec-head"><h2>本日の小謎</h2><p>毎日0時に新しい問題に変わります。</p></div>
+  <div class="daily">
+    <div class="body">
+      <span class="date">${dayLabel(today)}</span>
+      <p class="dq">${d.q}</p>
+      ${solvedToday ? `<p class="msg okm">正解：${d.a[0]}。${d.ex}</p><p class="msg" style="color:var(--muted);font-size:13px">次の小謎は明日0時に公開されます。</p>` :
+      `<form id="daily-form"><label class="sr" for="daily-in">本日の小謎の答え</label><input id="daily-in" autocomplete="off" placeholder="答えを入力"><button class="btn" type="submit">回答する</button></form>
+       <p class="msg" id="daily-msg" role="status" aria-live="polite"></p>`}
+    </div>
+    <div class="streak"><span>連続正解</span><b>${streak()}日</b><div class="week" aria-label="直近7日間の記録">${week}</div></div>
+  </div>
+
+  <div class="sec-head"><h2>事件ファイル</h2><p>どれからでも挑戦できます。数字が大きいほど難しくなります。</p></div>
+  <div class="files">
+    ${FILES.map(f=>{ const pr = fileProgress(f);
+      return `<a class="fcard" href="#${f.id}">${EMBLEM[f.id]}${pr.done?`<span class="seal">解決</span>`:""}
+        <div class="in"><span class="no">${f.no} ／ ${f.genre}</span><h3>${f.title}</h3><span class="meta">難易度 ${f.lv}　目安 ${f.time}</span>
+        <div class="state"><span>${pr.done?"解決済み":pr.n?`捜査中 ${pr.n}/${pr.total}`:"未着手"}</span><span class="bar"><i style="width:${pr.n/pr.total*100}%"></i></span></div></div></a>`; }).join("")}
+    <div class="fcard soon">${EMBLEM.file03}<div class="in"><span class="no">${NEXT.no} ／ ${NEXT.genre}</span><h3>${NEXT.title}</h3>
+      <span class="meta">公開まで</span><span class="count-down" id="countdown">--</span></div></div>
+  </div>
+
+  <div class="sec-head"><h2>捜査官手帳</h2><p>記録はこのブラウザに保存されます。</p></div>
+  <div class="notebook">
+    <div class="badge"><span class="mono" style="font-size:11px;color:var(--muted)">現在の階級</span><span class="rk">${r.name}</span>
+      <span class="next">${r.next?`次の「${r.next[1]}」まで あと ${r.next[0]-r.p} 点`:"最高階級に到達しました"}</span>
+      <span class="next">事件の章を解くと3点、事件解決で10点、小謎の正解で2点。ヒントを使うと少し減ります。</span></div>
+    <div class="stats">
+      <div><b>${filesSolved}/${FILES.length}</b><span>解決した事件</span></div>
+      <div><b>${Object.keys(st.daily).length}</b><span>解いた小謎</span></div>
+      <div><b>${r.p}</b><span>捜査ポイント</span></div>
+      <div><b>${hintsUsed}</b><span>使ったヒント</span></div>
+    </div>
+  </div>`;
+  tickCountdown();
+}
+function tickCountdown(){
+  const el = $("countdown"); if (!el) return;
+  const ms = new Date(NEXT.date) - Date.now();
+  if (ms <= 0){ el.textContent = "まもなく公開"; return; }
+  const d = Math.floor(ms/86400e3), h = Math.floor(ms%86400e3/3600e3), m = Math.floor(ms%3600e3/60e3);
+  el.textContent = `${d}日 ${String(h).padStart(2,"0")}時間 ${String(m).padStart(2,"0")}分`;
+}
+setInterval(tickCountdown, 30000);
+
+/* ============ ファイル ============ */
+let current = null;
+const allMain = f => f.chapters.every(c => fs(f.id).solved[c.id]);
+function chapterHTML(f, c, locked){
+  const s = fs(f.id), solved = s.solved[c.id], shown = s.hints[c.id] || 0;
+  const head = `<div class="ch-head"><span class="no">${c.no}</span><h2>${c.title}</h2><span class="lv">${c.lv}</span></div>`;
+  if (locked) return `<section class="ch" id="${c.id}">${head}<div class="lockcard"><b>まだ開けません</b>ほかの章をすべて解くと、この資料が開示されます。</div></section>`;
+  return `<section class="ch" id="${c.id}">${head}
+    <div class="story">${c.story.map(p=>`<p>${p}</p>`).join("")}</div>
+    <div class="doc">${c.doc}</div>
+    ${solved ? `<div class="solved"><span class="seal">解決</span><h4>${c.reveal.head}</h4><p>${c.reveal.body}</p></div>` :
+    `<div class="ask"><p class="q">${c.q}</p>
+      <form data-ch="${c.id}"><label class="sr" for="in-${c.id}">回答</label><input id="in-${c.id}" autocomplete="off" placeholder="答えを入力"><button class="btn" type="submit">回答する</button></form>
+      <p class="msg" id="msg-${c.id}" role="status" aria-live="polite"></p>
+      ${c.hints.slice(0,shown).map((h,i)=>`<p class="hintbox"><b>ヒント${i+1}</b>${h}</p>`).join("")}
+      <div class="hints">${shown < c.hints.length ? `<button class="btn ghost" type="button" data-hint="${c.id}">ヒント${shown+1}を見る</button>` : `<button class="btn ghost" type="button" data-giveup="${c.id}">答えを見る</button>`}</div>
+    </div>`}</section>`;
+}
+function renderFile(f){
+  const s = fs(f.id), all = [...f.chapters, f.final];
+  const n = all.filter(c => s.solved[c.id]).length;
+  let html = `<header class="cover"><p class="file">${f.no} ／ ${f.genre}　難易度 ${f.lv}</p><h1>${f.title}</h1>
+    <div class="lede">${f.lede.map(p=>`<p>${p}</p>`).join("")}</div>
+    ${f.cast?`<div class="cast">${f.cast.map(([a,b])=>`<div><b>${a}</b>${b}</div>`).join("")}</div>`:""}
+    <p class="rules">答えはひらがな・カタカナ・漢字のどれで入力してもかまいません。詰まったらヒントを。進み具合はこのブラウザに保存されます。目安は${f.time}です。</p></header>
+  <nav class="board" aria-label="捜査の進み具合">${all.map((c,i)=>{ const locked = c===f.final && !allMain(f);
+    return `<a href="#${f.id}" data-jump="${c.id}" class="${s.solved[c.id]?"done":""} ${locked?"locked":""}"><i>${s.solved[c.id]?"✓":(c===f.final?"終":i+1)}</i>${c.no}</a>`; }).join("")}
+    <span class="count">${n} / ${all.length} 解決</span></nav>`;
+  html += f.chapters.map(c => chapterHTML(f, c, false)).join("") + chapterHTML(f, f.final, !allMain(f));
+  if (s.solved.fin){
+    const mins = s.start && s.end ? Math.max(1, Math.round((s.end - s.start)/60000)) : null;
+    const used = Object.values(s.hints).reduce((a,b)=>a+b,0);
+    const text = `零課事件簿 ${f.no}「${f.title}」を解決しました。${mins?`所要 ${mins} 分、`:""}ヒント ${used} 回。\n#零課事件簿 #謎解き`;
+    const nextF = FILES[FILES.indexOf(f)+1];
+    html += `<div class="ending">${f.ending}
+      <div class="share"><label class="mono" for="share-text" style="font-size:11px;color:var(--muted)">結果をシェア（答えは含まれません）</label>
+      <textarea id="share-text" readonly>${text}</textarea><button class="btn ghost" id="copy" type="button">結果をコピー</button></div>
+      <div class="nextfile">${nextF?`<a class="btn" href="#${nextF.id}">次の事件：${nextF.no}「${nextF.title}」へ</a>`:`<a class="btn" href="#">表紙に戻る</a>`}</div></div>`;
+  }
+  $("view").innerHTML = html;
+}
+
+/* ============ ルーティング ============ */
+function route(){
+  const h = location.hash.replace("#","");
+  current = FILES.find(f => f.id === h) || null;
+  document.querySelectorAll("[data-nav]").forEach(a => a.toggleAttribute("aria-current", (current ? current.id : "home") === a.dataset.nav));
+  current ? renderFile(current) : renderHome();
+  scrollTo(0,0);
+}
+function rerender(scrollId){
+  current ? renderFile(current) : renderHome();
+  if (scrollId) document.getElementById(scrollId)?.scrollIntoView({block:"start", behavior: reduced() ? "auto" : "smooth"});
+}
+addEventListener("hashchange", route);
+
+/* ============ 入力 ============ */
+document.addEventListener("submit", e => {
+  e.preventDefault();
+  if (e.target.id === "daily-form"){
+    const today = jstDay(), d = DAILY[today % DAILY.length], v = norm($("daily-in").value);
+    if (!v) return;
+    if (d.a.map(norm).includes(v)){ st.daily[today] = true; save(); rerender(); }
+    else { $("daily-msg").className = "msg ng"; $("daily-msg").textContent = "違うようです。もう一度考えてみましょう。"; }
+    return;
+  }
+  const form = e.target.closest("form[data-ch]"); if (!form || !current) return;
+  const f = current, s = fs(f.id), id = form.dataset.ch, c = [...f.chapters, f.final].find(x => x.id === id);
+  const v = norm(form.querySelector("input").value); if (!v) return;
+  if (!s.start) s.start = Date.now();
+  const ok = c.check ? c.check(v) : c.answers.map(norm).includes(v);
+  if (ok){
+    s.solved[id] = true; if (id === "fin") s.end = Date.now(); save();
+    rerender((id !== "fin" && allMain(f) && !s.solved.fin) ? "fin" : id);
+  } else {
+    const m = $("msg-"+id); m.className = "msg ng"; m.textContent = "違うようです。資料をもう一度見てみましょう。";
+  }
+});
+const CELL = ["","×","○"];
+document.addEventListener("click", async e => {
+  const jump = e.target.closest("[data-jump]");
+  if (jump){ e.preventDefault(); document.getElementById(jump.dataset.jump)?.scrollIntoView({block:"start", behavior: reduced() ? "auto" : "smooth"}); return; }
+  const cell = e.target.closest("[data-cell]");
+  if (cell){ const k = (CELL.indexOf(cell.textContent)+1) % 3; cell.textContent = CELL[k]; cell.className = k===1?"x":k===2?"o":""; return; }
+  if (!current) { if (e.target.id === "reset") return; }
+  const h = e.target.closest("[data-hint]");
+  if (h && current){ const s = fs(current.id); if (!s.start) s.start = Date.now(); s.hints[h.dataset.hint] = (s.hints[h.dataset.hint]||0)+1; save(); rerender(h.dataset.hint); return; }
+  const g = e.target.closest("[data-giveup]");
+  if (g && current){ const s = fs(current.id), id = g.dataset.giveup; s.solved[id] = true; s.hints[id] = (s.hints[id]||0)+1; if (id==="fin") s.end = Date.now(); save(); rerender(id); return; }
+  if (e.target.id === "copy"){
+    const ta = $("share-text");
+    try { await navigator.clipboard.writeText(ta.value); e.target.textContent = "コピーしました"; }
+    catch(err){ ta.focus(); ta.select(); e.target.textContent = "選択しました。手動でコピーしてください"; }
+    setTimeout(()=>{ if ($("copy")) $("copy").textContent = "結果をコピー"; }, 2000);
+  }
+});
+let resetArmed = false;
+$("reset").onclick = () => {
+  if (!resetArmed){ resetArmed = true; $("reset").textContent = "もう一度押すと、すべての記録を消します"; setTimeout(()=>{resetArmed=false;$("reset").textContent="すべての記録を消す";},3000); return; }
+  st = { files:{}, daily:{} }; try { localStorage.removeItem("reika-file01"); } catch(e){}
+  save(); resetArmed = false; $("reset").textContent = "すべての記録を消す"; route();
+};
+
+route();
+</script>
+</body>
+</html>
