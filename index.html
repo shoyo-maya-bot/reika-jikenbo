@@ -178,6 +178,19 @@ table.hb{border-collapse:collapse;width:100%;max-width:520px;font-variant-numeri
 .hb td:first-child{font-family:var(--f-mono);font-size:22px;letter-spacing:.3em}
 .hb td{font-family:var(--f-mono)}
 
+/* FILE 03：ダイヤ図・天秤・暗号・カレンダー */
+.dia{display:block;width:760px;max-width:none;height:auto}
+.legend{margin:12px 0 0;padding-left:1.2em;font-size:13px;color:var(--muted);display:grid;gap:2px}
+.bal{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.bal svg{width:160px;max-width:47%;height:auto;flex:0 0 auto}
+.cipher{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:16px}
+.cipher span{width:38px;border:1px solid var(--line);background:var(--paper);text-align:center;line-height:1.5;padding:4px 0}
+.cipher b{display:block;font-family:var(--f-display);font-size:20px}
+.cipher small{display:block;font-size:16px;color:var(--muted)}
+.gojuon{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;margin-top:14px;font-family:var(--f-display);font-size:15px}
+.gojuon span{border-bottom:1px solid var(--line);padding:0 2px;letter-spacing:.15em}
+.calfig{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+
 /* 問いと回答 */
 .ask{margin-top:20px;display:grid;gap:12px}
 .ask .q{font-family:var(--f-display);font-size:19px;margin:0}
@@ -288,6 +301,16 @@ const EMBLEM = {
     <path d="M100 130 L160 96 L220 130Z" fill="var(--ink)"/>
     <rect x="128" y="144" width="16" height="16" fill="var(--tag)"/><rect x="176" y="144" width="16" height="16" fill="var(--paper)" stroke="var(--ink)"/>
     ${[[30,30],[80,20],[240,30],[290,50],[60,110],[270,120],[130,40],[210,90]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.5" fill="var(--muted)"/>`).join("")}</svg>`,
+  file03:`<svg class="emb" viewBox="0 0 320 200" aria-hidden="true"><rect width="320" height="200" fill="var(--paper)"/>
+    ${[0,1,2,3,4,5,6,7].map(i=>`<line x1="${20+i*40}" y1="14" x2="${20+i*40}" y2="120" stroke="var(--line)"/>`).join("")}
+    <polyline points="20,24 70,64 84,64 132,112" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4"/>
+    <polyline points="150,112 196,70 204,70 250,28" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4"/>
+    <rect x="96" y="70" width="128" height="94" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+    <path d="M88 72 L160 40 L232 72Z" fill="var(--ink)"/>
+    ${[0,1,2].map(r=>[0,1,2,3].map(c=>`<rect x="${110+c*28}" y="${84+r*24}" width="14" height="14" fill="${r===1&&c===2?"var(--tag)":"var(--paper)"}" stroke="var(--ink)"/>`).join("")).join("")}
+    <line x1="0" y1="178" x2="320" y2="178" stroke="var(--ink)" stroke-width="3"/>
+    ${Array.from({length:32},(_,i)=>`<line x1="${i*10+5}" y1="173" x2="${i*10+5}" y2="183" stroke="var(--ink)"/>`).join("")}
+    <rect x="236" y="158" width="62" height="18" rx="3" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/></svg>`,
   soon:`<svg class="emb" viewBox="0 0 320 200" aria-hidden="true"><rect width="320" height="200" fill="var(--paper)"/>
     <rect x="110" y="40" width="100" height="140" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/>
     ${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${122+c*28}" y="${54+r*30}" width="18" height="18" fill="${(r+c)%3===0?"var(--tag)":"none"}" stroke="var(--muted)"/>`).join("")).join("")}
@@ -428,8 +451,185 @@ const FILE02 = {
   ending:`<h3>真相</h3><p>霧島が書き直した遺言書には、石川の事務所が管理していた財団への寄付を、すべて取りやめると書かれていた。財団の資金を使い込んでいた石川にとって、それは破滅を意味した。</p><p>電気の分電盤を落としたのも石川だった。停電中なら時計は止まり、誰も正確な時刻を知らない。ただひとつ、ぜんまいで動く柱時計を除いて。遺言書は、石川の鞄の底から見つかった。</p><p>FILE 02、解決。おつかれさまでした、捜査官。</p>`
 };
 
-const FILES = [FILE01, FILE02];
-const NEXT = { no:"FILE 03", title:"幽霊ホテルの時刻表", genre:"列車とアリバイ", date:"2026-10-11T10:00:00+09:00" };
+/* ============ FILE 03 ============ */
+const mapSVG = (()=>{
+  const X = x => 50 + x*70, Y = y => 40 + y*55, TY = 177;
+  let s = `<svg class="plan" style="min-width:470px" viewBox="0 0 540 300" role="img" aria-label="夕霧線保存会の巡回地図。方位記号の北は右を向いている。道は碁盤の目で、線路は踏切でしか渡れない">
+  <rect x="0" y="0" width="540" height="300" fill="var(--paper)"/>
+  <rect x="${X(3)+8}" y="${Y(0)+8}" width="54" height="39" fill="var(--line)"/>`;
+  for (let y=0;y<=4;y++) s += `<line x1="${X(0)}" y1="${Y(y)}" x2="${X(6)}" y2="${Y(y)}" stroke="var(--muted)" stroke-width="6" stroke-linecap="round" opacity=".45"/>`;
+  for (let x=0;x<=6;x++){
+    s += `<line x1="${X(x)}" y1="${Y(0)}" x2="${X(x)}" y2="${Y(2)}" stroke="var(--muted)" stroke-width="6" stroke-linecap="round" opacity=".45"/>`;
+    s += `<line x1="${X(x)}" y1="${Y(3)}" x2="${X(x)}" y2="${Y(4)}" stroke="var(--muted)" stroke-width="6" stroke-linecap="round" opacity=".45"/>`;
+    if (x===1||x===4) s += `<line x1="${X(x)}" y1="${Y(2)}" x2="${X(x)}" y2="${Y(3)}" stroke="var(--muted)" stroke-width="6" opacity=".45"/>`;
+  }
+  s += `<line x1="0" y1="${TY}" x2="${X(6)+10}" y2="${TY}" stroke="var(--ink)" stroke-width="3"/>`;
+  for (let i=4;i<X(6)+10;i+=10) s += `<line x1="${i}" y1="${TY-5}" x2="${i}" y2="${TY+5}" stroke="var(--ink)" stroke-width="1.2"/>`;
+  [1,4].forEach(x => s += `<rect x="${X(x)-8}" y="${TY-11}" width="16" height="22" fill="var(--tag)" stroke="var(--ink)"/><text x="${X(x)+12}" y="${TY+18}" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">踏切</text>`);
+  s += `<rect x="${X(2)+6}" y="${Y(2)+6}" width="58" height="12" fill="var(--sheet)" stroke="var(--ink)"/>
+  <rect x="${X(6)-22}" y="${TY-14}" width="50" height="28" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+  <text x="6" y="${TY-10}" font-family="var(--f-mono)" font-size="10" fill="var(--muted)">← 港町方面</text>
+  <text x="${X(3)+35}" y="${Y(0)+32}" text-anchor="middle" font-family="var(--f-display)" font-size="13" fill="var(--ink)">ホテル</text>
+  <text x="${X(3)-4}" y="${Y(1)+16}" text-anchor="middle" font-family="var(--f-mono)" font-size="9" fill="var(--muted)">正面</text>
+  <text x="${X(4)+4}" y="${Y(1)+16}" text-anchor="middle" font-family="var(--f-mono)" font-size="9" fill="var(--muted)">裏口</text>`;
+  [["A",2,2],["C",6,2],["D",0,0],["E",5,4],["F",2,4]].forEach(([l,x,y]) =>
+    s += `<circle cx="${X(x)}" cy="${Y(y)}" r="10" fill="var(--sheet)" stroke="var(--ink)" stroke-width="1.5"/><text x="${X(x)}" y="${Y(y)+4}" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink)">${l}</text>`);
+  s += `<text x="${X(3)+35}" y="${Y(0)+44}" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink)">B</text>
+  <g transform="translate(490 30)"><line x1="0" y1="0" x2="38" y2="0" stroke="var(--ink)" stroke-width="2"/><path d="M44 0 L34 -6 L34 6Z" fill="var(--stamp)"/><text x="20" y="20" text-anchor="middle" font-family="var(--f-display)" font-size="14" fill="var(--ink)">北</text></g>
+  <g font-family="var(--f-mono)" font-size="10" fill="var(--ink)"><line x1="${X(0)}" y1="286" x2="${X(1)}" y2="286" stroke="var(--ink)" stroke-width="2"/><line x1="${X(0)}" y1="280" x2="${X(0)}" y2="292" stroke="var(--ink)"/><line x1="${X(1)}" y1="280" x2="${X(1)}" y2="292" stroke="var(--ink)"/><text x="${X(1)+8}" y="290">80m（徒歩約1分）</text></g></svg>`;
+  return s;
+})();
+
+const DIA = {
+  "下1":[[0,null,"21:00"],[1,"21:14","21:15"],[2,"21:31","21:34"],[3,"21:54",null]],
+  "上2":[[3,null,"21:05"],[2,"21:25","21:32"],[1,"21:48","21:50"],[0,"22:04",null]],
+  "下3":[[0,null,"21:30"],[1,"21:44","21:49"],[2,"22:05","22:16"],[3,"22:36",null]],
+  "上4":[[3,null,"21:55"],[2,"22:15","22:17"],[1,"22:33","22:38"],[0,"22:52",null]],
+  "下5":[[0,null,"22:22"],[1,"22:36","22:39"],[2,"22:55","22:56"],[3,"23:16",null]],
+  "回9":[[-1,null,"23:20"],[0,"23:22","23:22"],[1,"23:36","23:36"],[2,"23:52","23:57"],[3,"0:17",null]],
+  "回11":[[-1,null,"23:50"],[0,"23:52","23:52"],[1,"0:06","0:06"],[2,"0:22","0:27"],[3,"0:47",null]]
+};
+const diaSVG = (()=>{
+  const SY = {"-1":26, 0:56, 1:116, 2:186, 3:266}, NAME = {"-1":"機関庫", 0:"霧野", 1:"沢渡", 2:"宮ノ下", 3:"港町"};
+  const mins = s => { const [h,m] = s.split(":").map(Number); return ((h<12?h+24:h)-21)*60 + m; };
+  const X = m => 70 + m*2.8;
+  let s = `<svg class="dia" width="760" height="310" viewBox="0 0 760 310" role="img" aria-label="夕霧線の夜のダイヤ図。横軸が時刻、縦軸が駅。斜めの線が列車">
+  <rect width="760" height="310" fill="var(--paper)"/>`;
+  for (let m=0;m<=240;m+=10) s += `<line x1="${X(m)}" y1="${SY[-1]}" x2="${X(m)}" y2="${SY[3]}" stroke="var(--line)" stroke-width="${m%60?0.6:1.6}"/>`;
+  for (let h=0;h<=4;h++) s += `<text x="${X(h*60)}" y="302" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--muted)">${(21+h)%24}時</text>`;
+  for (const k of [-1,0,1,2,3]) s += `<line x1="64" y1="${SY[k]}" x2="${X(240)}" y2="${SY[k]}" stroke="var(--line)" stroke-width="${k<0?0.6:1.2}" ${k<0?'stroke-dasharray="3 3"':""}/><text x="58" y="${SY[k]+4}" text-anchor="end" font-family="var(--f-display)" font-size="${k<0?11:14}" fill="var(--${k<0?"muted":"ink"})">${NAME[k]}</text>`;
+  let top = "";
+  for (const [name, ev] of Object.entries(DIA)){
+    const kai = name.startsWith("回"), down = ev[ev.length-1][0] > ev[0][0];
+    const pts = [], labels = [];
+    ev.forEach(([st,a,d],i) => {
+      const y = SY[st];
+      if (a){ pts.push([X(mins(a)),y]); }
+      if (d && d!==a){ pts.push([X(mins(d)),y]); }
+      const mm = t => t.split(":")[1];
+      if (st<0){ labels.push([X(mins(d))+5, y-5, mm(d), "start"]); return; }
+      if (a && d && a===d) labels.push([X(mins(a))+5, y-5, mm(a), "start"]);
+      else {
+        if (a) labels.push(down ? [X(mins(a))-4, y+13, mm(a), "end"] : [X(mins(a))-4, y-5, mm(a), "end"]);
+        if (d) labels.push(down ? [X(mins(d))+4, y-5, mm(d), "start"] : [X(mins(d))+4, y+13, mm(d), "start"]);
+      }
+    });
+    const col = kai ? "var(--muted)" : "var(--ink)";
+    s += `<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${kai?2:2.4}" ${kai?'stroke-dasharray="6 4"':""}/>`;
+    top += labels.map(([x,y,t,a]) => `<text x="${x}" y="${y}" text-anchor="${a}" font-family="var(--f-mono)" font-size="10" fill="${col}" stroke="var(--paper)" stroke-width="3" paint-order="stroke">${t}</text>`).join("");
+    const [p0,p1] = [pts[0], pts[1]];
+    top += kai ? `<text x="${p0[0]-8}" y="${p0[1]+16}" text-anchor="end" font-family="var(--f-display)" font-size="13" fill="var(--muted)">${name}</text>`
+      : `<text x="${(p0[0]+p1[0])/2 + (down?10:-10)}" y="${(p0[1]+p1[1])/2 + 4}" text-anchor="${down?"start":"end"}" font-family="var(--f-display)" font-size="13" fill="var(--accent)">${name}</text>`;
+  }
+  return s + top + `</svg>`;
+})();
+
+function balSVG(L, R, tilt){
+  const ang = tilt ? 9*Math.PI/180 : 0, dx = 55*Math.cos(ang), dy = 55*Math.sin(ang);
+  const ends = [[95-dx, 30-dy, L], [95+dx, 30+dy, R]];
+  return `<svg viewBox="0 0 190 112" role="img" aria-label="天秤。左に${L}、右に${R}。${tilt?"右に傾いている":"つり合っている"}">
+    <path d="M95 30 L82 100 H108Z" fill="var(--line)"/><line x1="66" y1="100" x2="124" y2="100" stroke="var(--ink)" stroke-width="2"/>
+    <line x1="${95-dx}" y1="${30-dy}" x2="${95+dx}" y2="${30+dy}" stroke="var(--ink)" stroke-width="3"/><circle cx="95" cy="30" r="4" fill="var(--stamp)"/>
+    ${ends.map(([x,y,t]) => `<line x1="${x}" y1="${y}" x2="${x-22}" y2="${y+34}" stroke="var(--muted)"/><line x1="${x}" y1="${y}" x2="${x+22}" y2="${y+34}" stroke="var(--muted)"/>
+      <path d="M${x-30} ${y+34} H${x+30} Q${x} ${y+46} ${x-30} ${y+34}Z" fill="var(--sheet)" stroke="var(--ink)"/>
+      <text x="${x}" y="${y+30}" text-anchor="middle" font-size="17" fill="var(--ink)" letter-spacing="-1">${t}</text>`).join("")}</svg>`;
+}
+const cipherHTML = (()=>{
+  const c = [..."かたんなすふららほせぬ"], m = [..."▲★◆■●◆★▲■◆★"];
+  return `<div class="cipher" aria-label="暗号文。上が文字、下が印">${c.map((x,i)=>`<span><b>${x}</b><small>${m[i]}</small></span>`).join("")}</div>`;
+})();
+const gojuonHTML = `<div class="gojuon" aria-label="五十音の順">${["あいうえお","かきくけこ","さしすせそ","たちつてと","なにぬねの","はひふへほ","まみむめも","やゆよ","らりるれろ","わをん"].map(r=>`<span>${r}</span>`).join("")}</div>`;
+
+const calSVG = (()=>{
+  const x0 = 14, cw = 56, rowY = [96,136,176];
+  const rows = [[30,31,1,2,3,4,5],[6,7,8,9,10,11,12],[13,14,15,16,17,18,19]];
+  const circ = [1,5,9,14,18], tri = [8,15];
+  let s = `<svg class="calfig" viewBox="0 0 420 230" role="img" aria-label="保線区のカレンダー9月。19日より下は破れてなくなっている。○は1日、5日、9日、14日、18日。△は8日と15日">
+  <path d="M6 6 H414 V196 L398 204 L382 194 L364 206 L346 195 L330 205 L312 193 L294 204 L276 196 L258 207 L240 194 L222 205 L204 195 L186 206 L168 194 L150 204 L132 196 L114 207 L96 195 L78 205 L60 194 L42 206 L24 196 L6 204Z" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.5"/>
+  <text x="210" y="34" text-anchor="middle" font-family="var(--f-display)" font-size="20" fill="var(--ink)">9月</text>`;
+  ["日","月","火","水","木","金","土"].forEach((w,i)=> s += `<text x="${x0+cw*i+cw/2}" y="62" text-anchor="middle" font-family="var(--f-body)" font-size="12" fill="var(--${i===0?"stamp":"muted"})">${w}</text>`);
+  rows.forEach((r,ri)=> r.forEach((d,i)=>{
+    const cx = x0+cw*i+cw/2, cy = rowY[ri], prev = ri===0 && d>20;
+    s += `<text x="${cx}" y="${cy+6}" text-anchor="middle" font-family="var(--f-mono)" font-size="17" fill="var(--${prev?"line":i===0?"stamp":"ink"})">${d}</text>`;
+    if (!prev && circ.includes(d)) s += `<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+    if (!prev && tri.includes(d)) s += `<path d="M${cx+14} ${cy-18} L${cx+21} ${cy-6} H${cx+7}Z" fill="none" stroke="var(--accent)" stroke-width="1.6"/>`;
+  }));
+  return s + `</svg>`;
+})();
+
+const FILE03 = {
+  id:"file03", no:"FILE 03", title:"幽霊ホテルの時刻表", genre:"列車とアリバイ", lv:"★★★★★", time:"60〜120分",
+  lede:["夕霧線の終点、霧野駅の前に建つ古いホテル。もう列車の走らない真夜中に、明かりのない列車の音が聞こえる。そんな噂から、地元では「幽霊ホテル」と呼ばれている。",
+        "10月3日（土）の夜、ロビー奥の展示室から、夕霧線の開業の日に作られた「金の一番切符」が消えた。ケースの中には、見分けがつかないほどよくできたレプリカが置かれていた。",
+        "その夜、国道は土砂崩れで通れなかった。霧野と外の町を結ぶのは単線の夕霧線だけで、線路はトンネルが続くため歩いては通れない。容疑者は、早瀬・黒田・千田・森下の4人。"],
+  cast:[["早瀬","ホテルの支配人"],["黒田","鉄道写真家。宿泊客"],["千田","古物商。宿泊客"],["森下","元運転士。夕霧線の保存会"],["野々村","夜勤のフロント係"]],
+  chapters:[
+  { id:"c1", no:"第一章", title:"幽霊からの手紙", lv:"難易度 ★★★",
+    story:["事件の翌朝、フロントのカウンターに、差出人のない封筒が置かれていた。差出人の欄には「夕霧線の幽霊」とだけある。","中には道順を書いた手紙と、夕霧線保存会が線路の見回りに使っている古い地図が入っていた。"],
+    doc:`<span class="tag">資料 1</span><h3>幽霊の手紙と、保存会の巡回地図</h3>
+      <p class="memo">霧野駅の改札を出て、南へ80m。<br>東へ160m。途中で踏切をわたる。<br>北へ240m。<br>西へ160m。もう一度、踏切をわたる。<br>北へ160m。<br>そこに、探しものの手がかりがある。</p>
+      <div class="grid-wrap">${mapSVG}</div>
+      <ol class="legend" style="list-style:none;padding-left:0"><li>A 霧野駅（丸印が改札）　B ホテル　C 機関庫　D 給水塔　E 郵便局　F 神社</li>
+      <li>灰色の線が道。線路は踏切でしか渡れない。</li><li>保存会の地図は、線路が横にまっすぐ通るように描かれている。</li></ol>`,
+    q:"幽霊の手紙は、どこへ導いているか？", answers:["きかんこ","機関庫","c","きかんこc"],
+    hints:["この地図は、ふつうの地図とどこかが違います。手紙のとおりに歩こうとして通れない道に出たら、読み方のほうを疑いましょう。","方位記号の北は地図の右、東は地図の下です。80mが1区画。改札から「左へ1、下へ2（踏切）、右へ3、上へ2（踏切）、右へ2」と進みます。"],
+    reveal:{head:"答え：機関庫（C）", body:"北を右に読み、80mを1区画として歩くと、2つの踏切をちょうど渡って機関庫の門に着く。北を上として読むと、最初の一歩で線路にぶつかってしまう。機関庫の床には、レプリカを包んでいた薄紙と、記号の並んだ紙切れが落ちていた。"} },
+  { id:"c2", no:"第二章", title:"夜のダイヤ図", lv:"難易度 ★★★★",
+    story:["零課は、事件の夜に4人がどの列車に乗ったかを調べた。4人とも、その夜はそれぞれ1本の旅客列車に、始発の駅から終点まで乗ったことが分かっている（同じ列車に乗った人がいてもよい）。","駅の事務室には、その夜の運転をまとめたダイヤ図が残っていた。"],
+    doc:`<span class="tag">資料 2</span><h3>夕霧線　夜のダイヤ図</h3>
+      <div class="grid-wrap" style="margin-top:0">${diaSVG}</div>
+      <ul class="legend"><li>実線は旅客列車、点線は回送列車。回送は客を乗せず、機関庫から出て霧野駅には止まらない。</li>
+      <li>線が水平になっているところは、駅に止まっている時間。小さな数字は着・発の「分」。</li>
+      <li>単線のため、反対向きの列車とすれ違えるのは沢渡と宮ノ下だけ。</li>
+      <li>回送は、宮ノ下で運転士が点検するため5分止まる。回9は保線日でない夜に、回11は保線日の夜（作業が終わってから）に走る。走るのはどちらか一方だけ。</li></ul>
+      <h3 style="margin-top:20px">聞き取りのまとめ</h3>
+      <ul class="testimony">
+        <li><b>千田</b><span><q>途中の駅で反対向きの列車とすれ違ったのは、1回だけでした。黒田さんとは、そのとき窓越しに会釈しましたよ。</q></span></li>
+        <li><b>黒田</b><span><q>宮ノ下で、向かいのホームに止まっていた列車を撮りました。僕の列車が着いたときには、もうそこにいましたね。車内はがらがらでした。</q></span></li>
+        <li><b>早瀬</b><span><q>森下さんと同じ列車でした。沢渡では、すれ違う列車のほうが先に着いて待っていました。</q></span></li>
+        <li><b>森下</b><span><q>宮ノ下でも、反対向きの列車とすれ違ったな。下3はいつも宮ノ下で長く待たされるんだ。</q></span></li></ul>`,
+    q:"4人が乗った列車の番号を、早瀬・黒田・千田・森下の順に並べると？（例：下1・上2・下3・上4なら 1234）", check:s => s.replace(/[^0-9]/g,"") === "2452",
+    hints:["斜めの線が列車です。2本の線が同じ駅で水平に重なっているところが、すれ違い。どちらの線が先にその駅に届いているかも図から読めます。","すれ違いが1回だけなのは下1と下5。宮ノ下へ後から着くのは下1と上4。千田と黒田は、すれ違った相手どうしでなければなりません。早瀬と森下は、沢渡に後から着き、宮ノ下でもすれ違う列車です。"],
+    reveal:{head:"答え：2452", body:"早瀬と森下は上2で22時04分に霧野へ戻った。黒田は上4で22時52分に霧野へ。千田は最終の下5で22時22分に霧野を出て、23時16分に港町へ着いた。下1と下3には、4人の誰も乗っていない。"} },
+  { id:"c3", no:"第三章", title:"機関庫の紙切れ", lv:"難易度 ★★★★",
+    story:["機関庫で見つかった紙切れには、天秤の絵と、記号つきの文字が並んでいた。犯人と、切符の買い手とのあいだの連絡らしい。","紙の端には、小さくこう書かれている。「文字はそれぞれ、下の印の重さ（●いくつ分か）だけ、五十音を前へ戻して読め」。"],
+    doc:`<span class="tag">資料 3</span><h3>機関庫に落ちていた紙切れ</h3>
+      <div class="bal">${balSVG("◆◆◆","▲●●●",0)}${balSVG("■●","▲▲",0)}${balSVG("★","■◆",0)}${balSVG("▲◆","■",0)}${balSVG("★","■▲",1)}</div>
+      <p class="note" style="text-align:center">●1個の重さを1とする。同じ印は同じ重さ。</p>
+      ${cipherHTML}${gojuonHTML}
+      <p class="note" style="text-align:center">五十音はこの順に並べ、「あ」の前は「ん」に戻る。</p>`,
+    q:"切符の受け渡しは、どこで行われることになっていたか？", answers:["みやのした","宮ノ下","宮の下","宮ノ下駅","宮の下駅","みやのしたえき"],
+    hints:["まず天秤から、それぞれの印が●いくつ分の重さかを求めましょう。どれも整数になります。つり合っている天秤を式にして、組み合わせて解きます。","◆＝2、▲＝3、■＝5、★＝7。最初の文字「か」の下は▲なので、五十音を3つ戻って「う」。同じように11文字を戻します。"],
+    reveal:{head:"答え：宮ノ下（みやのした）", body:"◆3個＝▲＋●3個、■＋●＝▲2個、▲＋◆＝■ から、◆＝2、▲＝3、■＝5、★＝7。戻すと「うけわたしはみやのした」。右に傾いた天秤（★と■▲）は、どの重さを決めるのにも使わない。紙の裏には「必ず本人が持ってくること」と書き添えてあった。"} },
+  { id:"c4", no:"第四章", title:"破れたカレンダー", lv:"難易度 ★★★★",
+    story:["事件の夜、線路の上に誰かいなかったか。夜間の保線作業があれば、作業員が何かを見ているかもしれない。","保線区の詰所の壁には、作業日に印をつけたカレンダーが貼られていた。ところが9月のページは途中から破れていて、10月のページはまだ真っ白だ。"],
+    doc:`<span class="tag">資料 4</span><h3>保線区のカレンダー（2026年9月）</h3>${calSVG}
+      <ul class="legend"><li>○ 保線作業の日　△ 信号の点検（別の班。毎週火曜）</li></ul>
+      <p class="memo">保線作業は、前の作業日から決まった日数ごとに行う。作業日が日曜日にあたるときは、翌日の月曜日に行う。雨の日も休まない。</p>`,
+    q:"10月に入って、最初の保線日は何月何日か？", check:s => /^(10(月|\/))?5(日)?$/.test(s),
+    hints:["見えている○の間隔を数えて、何日ごとか決めましょう。日曜日をずらしたあと、次の作業日をどこから数えているかに注意。","作業は4日ごと。13日（日）は14日（月）にずれ、次はそこから4日後の18日。この決まりで9月末から10月へ進めます。9月30日は水曜日です。"],
+    reveal:{head:"答え：10月5日", body:"4日ごとに、9月22日、26日、30日。次の10月4日は日曜日なので、5日（月）にずれる。14日から数え直さずに9月1日から4日ごとに数えると、10月3日が作業日に見えてしまう。事件の夜、10月3日は保線日ではなかった。"} }
+  ],
+  final:{ id:"fin", no:"最終章", title:"時刻表にない列車", lv:"難易度 ★★★★★",
+    story:["零課は、事件の夜の記録を集め直した。","誰もが「最終列車が出たあとの霧野からは、外へ出られない」と思い込んでいた。だが本当にそうだろうか。"],
+    doc:`<span class="tag">資料 5</span><h3>10月3日の夜の記録</h3>
+      <ol class="clues">
+        <li>展示室のケースは暗証番号で開く。開閉の記録は「開 23時10分／閉 23時14分」の1回だけ。</li>
+        <li>フロントのカメラには、野々村が23時から朝までフロントにいた姿が映っている。展示室はカメラにもフロントにも見えない位置にある。</li>
+        <li>野々村によると、早瀬は23時30分から翌1時まで、フロントから見える事務室で帳簿をつけていた。</li>
+        <li>23時40分ごろ、森下がロビーに来て水を1杯飲み、すぐ部屋に戻った（カメラにも映っている）。</li>
+        <li>港町駅前のネットカフェに、黒田が0時31分に入店している（港町駅から徒歩2分）。</li>
+        <li>港町のバーに、千田が0時40分に入店している（港町駅から徒歩5分）。</li>
+        <li>霧野駅からホテルまでは、徒歩約2分。</li></ol>
+      <p class="note">記録はすべて確かめられている。犯人は、すり替えた切符を受け渡し場所へ自分で持っていった。</p>`,
+    q:"金の一番切符をすり替えたのは誰か？", answers:["くろだ","黒田"],
+    hints:["すり替えのあと、犯人は受け渡し場所まで切符を運ばなければなりません。最終列車が出たあとの霧野から外へ出られる乗り物は、第二章の図の中にあります。どちらが走ったかは、第四章で分かります。","10月3日は保線日ではないので、走ったのは回9。機関庫23時20分発、宮ノ下に23時52分〜57分停車、港町0時17分着。ホテルの裏口から機関庫までは地図で3区画（約3分）。23時10分に霧野にいて、この列車に乗れ、そのあとの記録と矛盾しない人は1人だけです。"],
+    reveal:{head:"答え：黒田", body:"走ったのは回9（第四章・第二章）。千田は下5で霧野を出ていて、23時10分には港町の近く（第二章）。早瀬は23時30分、森下は23時40分に霧野にいて、23時20分に出た回9には乗れない。受け渡しは宮ノ下で本人が行う約束だったから（第三章）、霧野に残った者には切符を渡せない。23時14分にケースを閉じ、3分で機関庫へ（第一章）。回9で宮ノ下へ行き、港町に0時17分に着いて0時31分にネットカフェへ入れたのは、上4で22時52分に霧野へ戻っていた黒田だけだ。もし回11が走っていたら港町着は0時47分で、黒田の記録とは合わない。"} },
+  ending:`<h3>真相</h3><p>黒田は、夕霧線を20年撮り続けてきた写真家だった。来春の廃線を前に、最後の写真集を自分のお金で出したが、残ったのは大きな借金だけ。そこへ、ある収集家が持ちかけた。「金の一番切符を手に入れてくれたら、借金を肩代わりしよう」。</p><p>何年も夜の線路を撮ってきた黒田は、「幽霊列車」の正体を知っていた。客を乗せない回送列車だ。保線日でない夜には、回9が23時20分に機関庫を出て、宮ノ下で5分止まる。ケースの暗証番号は、早瀬が開けるときの手元を望遠レンズで撮って知っていた。</p><p>あの夜、黒田は上4で霧野に戻り、23時10分にケースを開けてレプリカとすり替えた。裏口から機関庫へ走り、回9の後ろの運転台にもぐり込む。宮ノ下の5分の停車中に、ホームで待つ収集家の使いに切符を渡し、港町では駅前のネットカフェに入った。「その夜は港町にいた」と言うためだった。国道が通れないあの夜、霧野から出る手段はないと誰もが思い込んでいた。時刻表に載らない列車を除いて。</p><p>幽霊の手紙を書いたのは森下だった。眠れずに窓の外を見ていると、機関庫へ急ぐ人影と、明かりを消した回送が出ていくのが見えた。元運転士として胸騒ぎを覚え、保存会の地図を添えて手紙を残したのだという。金の一番切符は、宮ノ下にある収集家の別荘から無傷で見つかった。</p><p>FILE 03、解決。おつかれさまでした、捜査官。</p>`
+};
+
+const FILES = [FILE01, FILE02, FILE03];
+const NEXT = { no:"FILE 04", title:"砂時計の郵便局", genre:"消えた書留", date:"2026-10-18T10:00:00+09:00" };
 
 /* ============ 本日の小謎 ============ */
 const DAILY = [
@@ -445,7 +645,14 @@ const DAILY = [
   { q:"時計が3時30分を指しているとき、長針と短針がつくる小さいほうの角度は何度？", a:["75","75度"], ex:"短針は3と4の真ん中（105度）、長針は6（180度）。差は75度です。" },
   { q:"「にわにはにわにわとりがいる」。庭には鶏が何羽いる？", a:["2","2羽","にわ"], ex:"「庭には二羽、鶏がいる」です。" },
   { q:"次に入る漢字は？　一、十、百、千、□", a:["万","萬","まん"], ex:"位が10倍ずつ上がっていきます。" },
-  { q:"6人が全員と1回ずつ握手をすると、握手は全部で何回？", a:["15","15回"], ex:"6×5÷2で15回です。" }
+  { q:"6人が全員と1回ずつ握手をすると、握手は全部で何回？", a:["15","15回"], ex:"6×5÷2で15回です。" },
+  { q:"次に入る数は？　2、6、12、20、30、□", a:["42"], ex:"1×2、2×3、3×4……と続きます。6×7で42。" },
+  { q:"「ぬかぬえぬる」。このたぬきは「た」ではなく、自分の名前の真ん中の文字を抜いて読ませたい。何の生き物？", a:["かえる","蛙"], ex:"たぬきの真ん中は「ぬ」。「ぬ」を抜くと、かえる。" },
+  { q:"今日が水曜日なら、100日後は何曜日？", a:["金曜日","金曜","金","きんようび","きんよう"], ex:"100÷7は14あまり2。水曜日の2日後で金曜日です。" },
+  { q:"0時00分から23時59分まで表示するデジタル時計。1日のうち、4つの数字がすべて同じになるのは何回？", a:["3","3回"], ex:"00:00、11:11、22:22の3回。33:33は存在しません。" },
+  { q:"A〜Eの5人が縦1列に並んでいる。BはAより前にいて、2人の間には2人いる。CはDのすぐ後ろ。Eは先頭ではない。Dは真ん中ではない。前から2番目は誰？", a:["d"], ex:"並びは前から B・D・C・A・E の1通りだけです。" },
+  { q:"ある数を2倍して3を足すと、同じ数を3倍して5を引いたのと等しくなる。ある数は？", a:["8"], ex:"2x＋3＝3x−5 より x＝8。" },
+  { q:"次に入る数は？　1、4、9、61、52、63、□", a:["94"], ex:"1、4、9、16、25、36、49……と平方数を逆から読んでいます。49を逆にして94。" }
 ];
 function jstDay(t = Date.now()){ return Math.floor((t + 9*3600e3) / 86400e3); }
 function dayLabel(d){ const x = new Date(d*86400e3); return `${x.getUTCFullYear()}.${String(x.getUTCMonth()+1).padStart(2,"0")}.${String(x.getUTCDate()).padStart(2,"0")}`; }
